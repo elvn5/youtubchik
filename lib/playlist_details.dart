@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/link.dart';
 
 import 'app_state.dart';
+import 'adaptive_image.dart';
+import 'adaptive_text.dart';
 
 class PlaylistDetails extends StatelessWidget {
   const PlaylistDetails(
@@ -13,34 +15,50 @@ class PlaylistDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(playlistName),
-      ),
-      body: Consumer<FlutterDevPlaylists>(
-        builder: (context, playlists, _) {
-          final playlistItems = playlists.playlistItems(playlistId: playlistId);
-          if (playlistItems.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    return Consumer<AuthedUserPlaylists>(
+      builder: (context, playlists, _) {
+        final playlistItems = playlists.playlistItems(playlistId: playlistId);
+        if (playlistItems.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-          return _PlaylistDetailsListView(playlistItems: playlistItems);
-        },
-      ),
+        return _PlaylistDetailsListView(playlistItems: playlistItems);
+      },
     );
   }
 }
 
-class _PlaylistDetailsListView extends StatelessWidget {
+class _PlaylistDetailsListView extends StatefulWidget {
   const _PlaylistDetailsListView({required this.playlistItems});
   final List<PlaylistItem> playlistItems;
 
   @override
+  State<_PlaylistDetailsListView> createState() =>
+      _PlaylistDetailsListViewState();
+}
+
+class _PlaylistDetailsListViewState extends State<_PlaylistDetailsListView> {
+  late ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      itemCount: playlistItems.length,
+      controller: _scrollController,
+      itemCount: widget.playlistItems.length,
       itemBuilder: (context, index) {
-        final playlistItem = playlistItems[index];
+        final playlistItem = widget.playlistItems[index];
         return Padding(
           padding: const EdgeInsets.all(8.0),
           child: ClipRRect(
@@ -49,7 +67,7 @@ class _PlaylistDetailsListView extends StatelessWidget {
               alignment: Alignment.center,
               children: [
                 if (playlistItem.snippet!.thumbnails!.high != null)
-                  Image.network(playlistItem.snippet!.thumbnails!.high!.url!),
+                  AdaptiveImage.network(playlistItem.snippet!.thumbnails!.high!.url!),
                 _buildGradient(context),
                 _buildTitleAndSubtitle(context, playlistItem),
                 _buildPlayButton(context, playlistItem),
@@ -89,19 +107,21 @@ class _PlaylistDetailsListView extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          AdaptiveText(
+            // Also, this line
             playlistItem.snippet!.title!,
             style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-              fontSize: 18,
-              // fontWeight: FontWeight.bold,
-            ),
+                  fontSize: 18,
+                  // fontWeight: FontWeight.bold,
+                ),
           ),
           if (playlistItem.snippet!.videoOwnerChannelTitle != null)
-            Text(
+            AdaptiveText(
+              // And this line
               playlistItem.snippet!.videoOwnerChannelTitle!,
               style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                fontSize: 12,
-              ),
+                    fontSize: 12,
+                  ),
             ),
         ],
       ),
