@@ -71,8 +71,8 @@ final _router = GoRouter(
 );
 
 void main() {
-  runApp(ChangeNotifierProvider<AuthedUserPlaylists>(  // Modify this line
-    create: (context) => AuthedUserPlaylists(),        // Modify this line
+  runApp(ChangeNotifierProvider<AuthedUserPlaylists>(
+    create: (context) => AuthedUserPlaylists(),
     child: const PlaylistsApp(),
   ));
 }
